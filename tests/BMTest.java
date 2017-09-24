@@ -7,6 +7,7 @@ import global.Minibase;
 import diskmgr.Page;
 import global.PageId;
 import global.SystemDefs;
+//import global.TestDriver;
 import global.TestDriver;
 
 import java.io.IOException;
@@ -33,13 +34,12 @@ class BMDriver extends TestDriver implements GlobalConst {
 	/**
 	 * calls the runTests function in TestDriver
 	 */
-	public boolean runTests () {
-
+	public boolean runTest () {
 
 		System.out.print ("\n" + "Running " + testName() + " tests...." + "\n");
 
 		try {
-			create_minibase();
+			Minibase.initDiskMgr("test", 5);
 		}
 
 		catch (Exception e) {
@@ -105,7 +105,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		return _pass;
 	}
 
-	protected boolean runAllTests (){
+	protected boolean runAllTests1 (){
 
 		boolean _passAll = OK;
 
@@ -138,6 +138,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		// written during this test.
 		boolean status = OK;
 		int numPages = Minibase.BufferManager.getNumUnpinned() + 1;
+		//int numPages = BufMgr.getNumUnpinnedBuffers() + 1; //JT-
 		Page pg = new Page(); 
 		PageId pid; 
 		PageId lastPid;
@@ -626,9 +627,10 @@ class BMDriver extends TestDriver implements GlobalConst {
 	 *
 	 * @return the name of the test 
 	 */
-	protected String testName () {
-		return "Buffer Management";
-	}
+	
+//	protected String testName () {
+//		return "Buffer Management";
+//	}
 }
 
 public class BMTest {
@@ -638,7 +640,7 @@ public class BMTest {
 		BMDriver bmt = new BMDriver();
 		boolean dbstatus;
 
-		dbstatus = bmt.runTests();
+		dbstatus = bmt.runTest();
 
 		if (dbstatus != true) {
 			System.err.println ("Error encountered during buffer manager tests:\n");
