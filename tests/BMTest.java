@@ -1,9 +1,10 @@
 package tests;
 
 import global.Convert;
+
 import global.GlobalConst;
 import global.Minibase;
-import global.Page;
+import diskmgr.Page;
 import global.PageId;
 import global.SystemDefs;
 import global.TestDriver;
@@ -12,7 +13,7 @@ import java.io.IOException;
 
 import bufmgr.BufMgr;
 import diskmgr.Page;
-import exception.ChainException;
+import exceptions.ChainException;
 
 /**
  * This class provides the functions to test the buffer manager

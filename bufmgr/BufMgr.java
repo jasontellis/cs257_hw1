@@ -129,6 +129,11 @@ public class BufMgr extends AbstractBufMgr
 		// Extend this method to operate as it is supposed to (see the javadoc
 		// description above).
 		byte [] data = new byte[MAX_SPACE];
+		
+		
+		
+		
+		
 		pageIdToPageData.put(new PageId(pin_pgid.getPid()), data);
 		page.setpage(data);
 		
@@ -183,6 +188,7 @@ public class BufMgr extends AbstractBufMgr
 			throws ReplacerException, PageUnpinnedException,
 			HashEntryNotFoundException, InvalidFrameNumberException
 	{
+
 	}
 
 	/**
