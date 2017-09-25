@@ -6,9 +6,10 @@ import global.PageId;
 
 public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements GlobalConst
 {
-	
+	private PageId frame_pageId = null;
 	private int pinCount = 0;//JT+
 	private boolean dirtyFlag = false;//JT+
+	private boolean isEmpty = true;
 	
 	/**
 	 * Returns the pin count of a certain frame page.
@@ -37,7 +38,7 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 	public int unpin()
 	{ 
 		int _pinCount;
-		pinCount = pinCount <= 0? 0: --pinCount;//JT+ 
+		pinCount = pinCount <= 0 ? 0: --pinCount;//JT+ 
 		return pinCount;
 	};
 
@@ -45,12 +46,40 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 	 * 
 	 */
 	public PageId getPageNo()
-	{ return null; };
+	{ 
+		return frame_pageId; 
+	};
 
 	/**
 	 * the dirty bit, 1 (TRUE) stands for this frame is altered, 0 (FALSE) for
 	 * clean frames.
 	 */
 	public boolean isDirty()
-	{ return true; };
+	{ 
+		return true; 
+	};
+	
+	public void setDirty() {
+		dirtyFlag = true;
+	}
+	
+	public void setFrame(PageId pageId) {
+		frame_pageId = pageId;
+		isEmpty = false;
+		pinCount++;
+	}
+	
+	public void clearFrame() {
+		frame_pageId = null;
+		isEmpty = true;
+		pinCount = 0;
+	}
+	
+	public boolean getIsEmpty() {
+		return isEmpty;
+	}
+	
+	public void setIsEmpty(boolean b) {
+		isEmpty = b;
+	}
 }

@@ -48,9 +48,10 @@ public class BufMgr extends AbstractBufMgr
 	// Total number of buffer frames in the buffer pool. */
 	private int numBuffers;
 
-	// This buffer manager keeps all pages in memory! 
+	// This buffer manager keeps all pages in memory!
+	// private Hashtable pageIdToPageData = new Hashtable();
 	
-//	This Hashtable is the buffer pool
+	// This Hashtable is the buffer pool
 	private Hashtable<PageId, byte[]> pageIdToPageData = new Hashtable<PageId, byte[]>();
 	
 
@@ -70,7 +71,6 @@ public class BufMgr extends AbstractBufMgr
 	public BufMgr(int numbufs, String replacerArg) throws InvalidReplacerException
 	{
 		numBuffers = numbufs;
-
 		setReplacer(replacerArg);
 	}
 
@@ -133,10 +133,23 @@ public class BufMgr extends AbstractBufMgr
 		// description above).
 		byte [] data = new byte[MAX_SPACE];
 		
-		
-		
-		
-		
+		if(pageIdToPageData.containsKey(pin_pgid)) {
+			for(int i = 0; i <= frameTable.length; i++) {
+				if(pin_pgid.getPid() == frameTable[i].getPageNo().getPid()) {
+					frameTable[i].pin();
+					break;
+				}
+			}
+		} else {
+			int emptyFrameIndex = -1;
+			for(int i = 0; i <= frameTable.length; i++) {
+				if(frameTable[i].getIsEmpty()) {
+					emptyFrameIndex = i;
+					break;
+				}
+			}
+			frameTable[emptyFrameIndex].setFrame(new PageId(pin_pgid.getPid()));
+		} 
 		pageIdToPageData.put(new PageId(pin_pgid.getPid()), data);
 		page.setpage(data);
 		
@@ -191,7 +204,28 @@ public class BufMgr extends AbstractBufMgr
 			throws ReplacerException, PageUnpinnedException,
 			HashEntryNotFoundException, InvalidFrameNumberException
 	{
-
+		int pinCount = -1; //setting -1 as init val to prevent "variable might not have been initialized" warning/error
+		boolean pageFoundInFrameTable = false;
+		for(int i = 0; i <= frameTable.length; i++) {
+			if(PageId_in_a_DB.getPid() == frameTable[i].getPageNo().getPid()) {
+				pageFoundInFrameTable = true;
+				if(pinCount == 0) {
+					//throw an error, perhaps a PageUnpinnedException
+				} else {
+					pinCount = frameTable[i].unpin();
+					if(dirty) { 
+						frameTable[i].setDirty();
+					}
+					if(pinCount == 0) {
+						//add to pool of replacement candidates
+					}
+				}
+				break;
+			} 
+		}
+		if(!pageFoundInFrameTable) {
+			//exception thrown, need to figure which one
+		}
 	}
 
 	/**
@@ -352,6 +386,18 @@ public class BufMgr extends AbstractBufMgr
 	public AbstractBufMgrFrameDesc[] getFrameTable()
 	{
 		return this.frameTable;
+	}
+	
+	public void pinToFrameTable(PageId pageId) {
+		for(int i = 0; i <= frameTable.length; i++) {
+			if(pageId.getPid() == frameTable[i].getPageId().getPid()) {
+				frameTable[i].pin();
+			}
+		}
+	}
+	
+	public void unpinToFrameTable(PageId pageId, boolean dirty) {
+		
 	}
 
 }
