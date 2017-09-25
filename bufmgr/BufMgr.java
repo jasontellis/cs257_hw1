@@ -132,27 +132,46 @@ public class BufMgr extends AbstractBufMgr
 		//
 		// Extend this method to operate as it is supposed to (see the javadoc
 		// description above).
-		byte [] data = new byte[MAX_SPACE];
+		// byte [] data = new byte[MAX_SPACE];
+		byte [] data = page.getpage();
 		
 		if(pageIdToPageData.containsKey(pin_pgid)) {
+			boolean pageFoundInFrameTable = false;
 			for(int i = 0; i <= frameTable.length; i++) {
 				if(pin_pgid.getPid() == frameTable[i].getPageNo().getPid()) {
+					pageFoundInFrameTable = true;
 					frameTable[i].pin();
 					break;
 				}
 			}
+			if(!pageFoundInFrameTable) {
+				throw new BufMgrException(new Exception(), "Page found in hash table but not in frame table while pinning.");
+			}
 		} else {
+			boolean emptyFrameFound = false;
 			int emptyFrameIndex = -1;
 			for(int i = 0; i <= frameTable.length; i++) {
 				if(frameTable[i].getIsEmpty()) {
+					emptyFrameFound = true;
 					emptyFrameIndex = i;
 					break;
 				}
 			}
-			frameTable[emptyFrameIndex].setFrame(new PageId(pin_pgid.getPid()));
+			if(emptyFrameFound) {
+				frameTable[emptyFrameIndex].setFrame(new PageId(pin_pgid.getPid()));
+				if(!emptyPage) {
+					pageIdToPageData.put(new PageId(pin_pgid.getPid()), data);
+				}
+			} else {
+				// find corresponding page in hash table
+				// if dirty, flush to disk
+				// clear frame
+				// set frame
+				// if(!emptypage), read page info into hash table
+			}
 		} 
-		pageIdToPageData.put(new PageId(pin_pgid.getPid()), data);
-		page.setpage(data);
+		
+		// page.setpage(data);
 		
 		// Hint: Notice that this naive Buffer Manager allocates a page, but does not
 		// associate it with a page frame descriptor (an entry of the frameTable
@@ -207,25 +226,30 @@ public class BufMgr extends AbstractBufMgr
 	{
 		int pinCount = -1; //setting -1 as init val to prevent "variable might not have been initialized" warning/error
 		boolean pageFoundInFrameTable = false;
-		for(int i = 0; i <= frameTable.length; i++) {
-			if(PageId_in_a_DB.getPid() == frameTable[i].getPageNo().getPid()) {
+		for (int i = 0; i <= frameTable.length; i++) {
+			
+			if (PageId_in_a_DB.equals(frameTable[i].getPageNo())) {
+				
 				pageFoundInFrameTable = true;
-				if(pinCount == 0) {
-					//throw an error, perhaps a PageUnpinnedException
+				
+				if (frameTable[i].getPinCount() <= 0) {
+					throw new PageUnpinnedException(new Exception(),
+							"Page you're trying to unpin already have pincount <= 0");
 				} else {
 					pinCount = frameTable[i].unpin();
-					if(dirty) { 
+					if (dirty) {
 						frameTable[i].setDirty();
 					}
-					if(pinCount == 0) {
-						//add to pool of replacement candidates
+					if (pinCount == 0) {
+						// add to pool of replacement candidates
 					}
 				}
 				break;
-			} 
+			}
 		}
 		if(!pageFoundInFrameTable) {
 			//exception thrown, need to figure which one
+			throw new PageUnpinnedException(new Exception(),"Page you're trying to unpin is not found in the frameTable");
 		}
 	}
 
@@ -270,7 +294,7 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, PageNotReadException, BufMgrException,
 			DiskMgrException, IOException
 	{
-
+		// when do we need this?
 		return new PageId();
 	}
 
@@ -312,6 +336,7 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, HashEntryNotFoundException, BufMgrException,
 			DiskMgrException, IOException
 	{
+		// if user wants to delete a page, it's deleted from disk and buffer (incl. hashtable and frametable)?
 	}
 
 	/**
@@ -337,6 +362,7 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, PagePinnedException, PageNotFoundException,
 			BufMgrException, IOException
 	{
+		//to be implemented
 	}
 
 	/**
@@ -360,7 +386,7 @@ public class BufMgr extends AbstractBufMgr
 			BufMgrException, IOException
 	{
 	
-	
+		//question: in what situations would you need this? during exit?
 	}
 
 	/**
@@ -380,6 +406,7 @@ public class BufMgr extends AbstractBufMgr
 	 */
 	public int getNumUnpinnedBuffers()
 	{	
+		// question: why would you need this?
 		return 0;
 	}
 
@@ -387,18 +414,6 @@ public class BufMgr extends AbstractBufMgr
 	public AbstractBufMgrFrameDesc[] getFrameTable()
 	{
 		return this.frameTable;
-	}
-	
-	public void pinToFrameTable(PageId pageId) {
-		for(int i = 0; i <= frameTable.length; i++) {
-			if(pageId.getPid() == frameTable[i].getPageId().getPid()) {
-				frameTable[i].pin();
-			}
-		}
-	}
-	
-	public void unpinToFrameTable(PageId pageId, boolean dirty) {
-		
 	}
 
 }

@@ -37,7 +37,6 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 	 */
 	public int unpin()
 	{ 
-		int _pinCount;
 		pinCount = pinCount <= 0 ? 0: --pinCount;//JT+ 
 		return pinCount;
 	};
