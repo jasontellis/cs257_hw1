@@ -6,13 +6,17 @@ import global.PageId;
 
 public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements GlobalConst
 {
+	
+	private int pinCount = 0;//JT+
+	private boolean dirtyFlag = false;//JT+
+	
 	/**
 	 * Returns the pin count of a certain frame page.
 	 * 
 	 * @return the pin count number.
 	 */
 	public int getPinCount()
-	{ return 0; };
+	{ return pinCount; };
 
 	/**
 	 * Increments the pin count of a certain frame page when the page is pinned.
@@ -20,7 +24,9 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 	 * @return the incremented pin count.
 	 */
 	public int pin()
-	{ return 0; };
+	{ 
+		return ++pinCount;//JT 
+	};
 
 	/**
 	 * Decrements the pin count of a frame when the page is unpinned. If the pin
@@ -29,7 +35,11 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 	 * @return the decremented pin count.
 	 */
 	public int unpin()
-	{ return 0; };
+	{ 
+		int _pinCount;
+		pinCount = pinCount <= 0? 0: --pinCount;//JT+ 
+		return pinCount;
+	};
 
 	/**
 	 * 

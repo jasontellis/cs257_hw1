@@ -49,7 +49,10 @@ public class BufMgr extends AbstractBufMgr
 	private int numBuffers;
 
 	// This buffer manager keeps all pages in memory! 
-	private Hashtable pageIdToPageData = new Hashtable();
+	
+//	This Hashtable is the buffer pool
+	private Hashtable<PageId, byte[]> pageIdToPageData = new Hashtable<PageId, byte[]>();
+	
 
 	// An array of Descriptors one per frame. 
 	private BufMgrFrameDesc[] frameTable = new BufMgrFrameDesc[NUMBUF];
@@ -321,6 +324,8 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, PagePinnedException, PageNotFoundException,
 			BufMgrException, IOException
 	{
+	
+	
 	}
 
 	/**
@@ -339,7 +344,7 @@ public class BufMgr extends AbstractBufMgr
 	 * @return total number of unpinned buffer frames.
 	 */
 	public int getNumUnpinnedBuffers()
-	{
+	{	
 		return 0;
 	}
 
