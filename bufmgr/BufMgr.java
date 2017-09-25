@@ -48,6 +48,7 @@ public class BufMgr extends AbstractBufMgr
 	// Total number of buffer frames in the buffer pool. */
 	private int numBuffers;
 
+	
 	// This buffer manager keeps all pages in memory!
 	// private Hashtable pageIdToPageData = new Hashtable();
 	

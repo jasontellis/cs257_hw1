@@ -69,6 +69,7 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 		pinCount++;
 	}
 	
+
 	public void clearFrame() {
 		frame_pageId = null;
 		isEmpty = true;
