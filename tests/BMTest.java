@@ -43,6 +43,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		}
 
 		catch (Exception e) {
+			e.printStackTrace();
 			Runtime.getRuntime().exit(1);
 		}
 
