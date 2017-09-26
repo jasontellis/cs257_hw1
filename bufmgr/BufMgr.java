@@ -24,6 +24,7 @@ import exceptions.InvalidBufferException;
 import exceptions.InvalidFrameNumberException;
 import exceptions.InvalidPageNumberException;
 import exceptions.InvalidReplacerException;
+import exceptions.InvalidRunSizeException;
 import exceptions.PageNotFoundException;
 import exceptions.PageNotReadException;
 import exceptions.PagePinnedException;
@@ -452,7 +453,20 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, HashEntryNotFoundException, BufMgrException,
 			DiskMgrException, IOException
 	{
-		// if user wants to delete a page, it's deleted from disk and buffer (incl. hashtable and frametable)?
+		frameTable[getFrameForPage(globalPageId)].clearFrame();
+		pageIdToPageData.remove(globalPageId);
+		try {
+			SystemDefs.JavabaseDB.deallocate_page(globalPageId, 1);
+		} catch (InvalidRunSizeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidPageNumberException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileIOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
