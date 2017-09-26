@@ -161,7 +161,9 @@ public class BufMgr extends AbstractBufMgr
 //			}
 		
 		
-		} else {
+		}
+		//Requested Page not in Buffer
+		else {
 			boolean emptyFrameFound = false;
 			int emptyFrameIndex = -1;
 			for(int i = 0; i <frameTable.length; ++i) {
@@ -400,7 +402,15 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, PageNotReadException, BufMgrException,
 			DiskMgrException, IOException
 	{
-		// when do we need this?
+		PageId pageId = new PageId();
+		try
+		{
+			SystemDefs.JavabaseDB.allocate_page(pageId,howmany);
+		}
+		catch(Exception e)
+		{
+			
+		}
 		return new PageId();
 	}
 
@@ -512,8 +522,15 @@ public class BufMgr extends AbstractBufMgr
 	 */
 	public int getNumUnpinnedBuffers()
 	{	
-		// question: why would you need this?
-		return 0;
+		int unpinnedBuffers = 0;
+		for(int frameIndex = 0; frameIndex < frameTable.length; ++frameIndex)
+		{
+			if(frameTable[frameIndex].getPageNo() == null)
+			{
+				++unpinnedBuffers;
+			}
+		}
+		return unpinnedBuffers;
 	}
 
 	/** A few routines currently need direct access to the FrameTable. */
