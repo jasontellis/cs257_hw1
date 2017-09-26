@@ -478,7 +478,11 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, PagePinnedException, PageNotFoundException,
 			BufMgrException, IOException
 	{
-		//to be implemented
+		try {
+			SystemDefs.JavabaseDB.write_page(pageid, new Page(pageIdToPageData.get(pageid)));
+		} catch (FileIOException | InvalidPageNumberException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -501,8 +505,13 @@ public class BufMgr extends AbstractBufMgr
 			PageUnpinnedException, PagePinnedException, PageNotFoundException,
 			BufMgrException, IOException
 	{
-	
-		//question: in what situations would you need this? during exit?
+		for (PageId pageId : pageIdToPageData.keySet()) {
+			try {
+				SystemDefs.JavabaseDB.write_page(pageId, new Page(pageIdToPageData.get(pageId)));
+			} catch (FileIOException | InvalidPageNumberException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
