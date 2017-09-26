@@ -137,7 +137,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		// We choose this number to ensure that at least one page will have to be
 		// written during this test.
 		boolean status = OK;
-		int numPages = Minibase.BufferManager.getNumUnpinned() + 1;
+		int numPages = SystemDefs.JavabaseBM.getNumUnpinnedBuffers() + 1;
 		//int numPages = BufMgr.getNumUnpinnedBuffers() + 1; //JT-
 		Page pg = new Page(); 
 		PageId pid; 
@@ -147,7 +147,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		System.out.print("  - Allocate a bunch of new pages\n");
 
 		try {
-			firstPid = Minibase.BufferManager.newPage( pg, numPages );
+			firstPid = SystemDefs.JavabaseBM.newPage( pg, numPages );
 		}
 		catch (Exception e) {   
 			System.err.print("*** Could not allocate " + numPages);
@@ -159,7 +159,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		// Unpin that first page... to simplify our loop.
 		try {
-			Minibase.BufferManager.unpinPage(firstPid, false /*not dirty*/);
+			SystemDefs.JavabaseBM.unpinPage(firstPid, false /*not dirty*/);
 		}
 		catch (Exception e) {
 			System.err.print("*** Could not unpin the first new page.\n");
@@ -177,7 +177,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1 ) {
 
 			try {
-				Minibase.BufferManager.pinPage( pid, pg, /*emptyPage:*/ false);
+				SystemDefs.JavabaseBM.pinPage( pid, pg, /*emptyPage:*/ false);
 			}
 			catch (Exception e) { 
 				status = FAIL;
@@ -202,7 +202,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				if (status == OK) {
 					try {
-						Minibase.BufferManager.unpinPage( pid, /*dirty:*/ true );
+						SystemDefs.JavabaseBM.unpinPage( pid, /*dirty:*/ true );
 					}
 					catch (Exception e)  { 
 						status = FAIL;
@@ -223,7 +223,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1) {
 
 			try {
-				Minibase.BufferManager.pinPage( pid, pg, /*emptyPage:*/ false );
+				SystemDefs.JavabaseBM.pinPage( pid, pg, /*emptyPage:*/ false );
 			}
 			catch (Exception e) { 
 				status = FAIL;
@@ -253,7 +253,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				if (status == OK) {
 					try {
-						Minibase.BufferManager.unpinPage( pid, /*dirty:*/ true );
+						SystemDefs.JavabaseBM.unpinPage( pid, /*dirty:*/ true );
 					}
 					catch (Exception e)  { 
 						status = FAIL;
@@ -271,7 +271,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1) {
 
 			try {
-				Minibase.BufferManager.freePage( pid ); 
+				SystemDefs.JavabaseBM.freePage( pid ); 
 			}
 			catch (Exception e) {
 				status = FAIL;
@@ -301,7 +301,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		// We choose this number to ensure that pinning this number of buffers
 		// should fail.
-		int numPages = Minibase.BufferManager.getNumUnpinned() + 1;
+		int numPages = SystemDefs.JavabaseBM.getNumUnpinnedBuffers() + 1;
 		Page pg = new Page ();
 		PageId pid, lastPid;
 		PageId firstPid = new PageId();
@@ -309,7 +309,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		System.out.print("  - Try to pin more pages than there are frames\n");
 		try {
-			firstPid = Minibase.BufferManager.newPage( pg, numPages );
+			firstPid = SystemDefs.JavabaseBM.newPage( pg, numPages );
 		}
 		catch (Exception e) {   
 			System.err.print("*** Could not allocate " + numPages);
@@ -327,7 +327,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1 ) {
 
 			try {
-				Minibase.BufferManager.pinPage( pid, pg, /*emptyPage:*/ false );
+				SystemDefs.JavabaseBM.pinPage( pid, pg, /*emptyPage:*/ false );
 			}
 			catch (Exception e) { 
 				status = FAIL;
@@ -337,10 +337,10 @@ class BMDriver extends TestDriver implements GlobalConst {
 		}
 
 		// Make sure the buffer manager thinks there's no more room.
-		if ( status == OK  &&  Minibase.BufferManager.getNumUnpinned() != 0 ) {
+		if ( status == OK  &&  SystemDefs.JavabaseBM.getNumUnpinnedBuffers() != 0 ) {
 			status = FAIL;
 			System.err.print ("*** The buffer manager thinks it has " +
-					Minibase.BufferManager.getNumUnpinned() 
+					SystemDefs.JavabaseBM.getNumUnpinnedBuffers() 
 					+ " available frames,\n" +
 			"    but it should have none.\n");
 		}
@@ -348,7 +348,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		// Now pin that last page, and make sure it fails.
 		if ( status == OK ) {
 			try {
-				Minibase.BufferManager.pinPage( lastPid, pg, /*emptyPage:*/ false );
+				SystemDefs.JavabaseBM.pinPage( lastPid, pg, /*emptyPage:*/ false );
 			}
 			catch (ChainException e) { 
 				status = checkException (e, "bufmgr.BufferPoolExceededException");
@@ -370,7 +370,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		if ( status == OK ) {
 			try {
-				Minibase.BufferManager.pinPage( firstPid, pg, /*emptyPage:*/ false );
+				SystemDefs.JavabaseBM.pinPage( firstPid, pg, /*emptyPage:*/ false );
 			}
 			catch (Exception e) {
 				status = FAIL;
@@ -381,7 +381,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 			if ( status == OK ) {
 				System.out.print ("  - Try to free a doubly-pinned page\n");
 				try {
-					Minibase.BufferManager.freePage( firstPid );
+					SystemDefs.JavabaseBM.freePage( firstPid );
 				}
 
 				catch (ChainException e) {
@@ -408,7 +408,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 			if (status == OK) {
 				try {
-					Minibase.BufferManager.unpinPage( firstPid, false );
+					SystemDefs.JavabaseBM.unpinPage( firstPid, false );
 				}
 				catch (Exception e) {
 					status = FAIL;
@@ -420,7 +420,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		if ( status == OK ) {
 			System.out.print ("  - Try to unpin a page not in the buffer pool\n");
 			try {
-				Minibase.BufferManager.unpinPage( lastPid, false );
+				SystemDefs.JavabaseBM.unpinPage( lastPid, false );
 			}
 			catch (ChainException e) { 
 				status = checkException (e, "bufmgr.HashEntryNotFoundException");
@@ -446,8 +446,8 @@ class BMDriver extends TestDriver implements GlobalConst {
 		for ( pid.pid = firstPid.pid; pid.pid < lastPid.pid; 
 		pid.pid = pid.pid + 1 ) {
 			try {
-				Minibase.BufferManager.unpinPage(pid, false);
-				Minibase.BufferManager.freePage( pid );
+				SystemDefs.JavabaseBM.unpinPage(pid, false);
+				SystemDefs.JavabaseBM.freePage( pid );
 			}
 			catch (Exception e) { 
 				status = FAIL;
@@ -475,7 +475,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		"of the buffer manager\n");
 
 		int index; 
-		int numPages = BUF_SIZE + 10;
+		int numPages = NUMBUF + 10;
 		Page pg = new Page();
 		PageId pid = new PageId(); 
 		PageId [] pids = new PageId[numPages];
@@ -486,7 +486,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		for ( index=0; status == OK && index < numPages; ++index ) {
 			try {
-				pid = Minibase.BufferManager.newPage( pg, 1 );
+				pid = SystemDefs.JavabaseBM.newPage( pg, 1 );
 			}
 			catch (Exception e) {   
 				status = FAIL;
@@ -519,7 +519,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 				if (status == OK) {
 					if ( pid.pid % 20 != 12 ) {
 						try {
-							Minibase.BufferManager.unpinPage( pid, /*dirty:*/ true );
+							SystemDefs.JavabaseBM.unpinPage( pid, /*dirty:*/ true );
 						}
 						catch (Exception e) { 
 							status = FAIL;
@@ -536,7 +536,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 			for ( index=0; status == OK && index < numPages; ++index ) {
 				pid = pids[index];
 				try {
-					Minibase.BufferManager.pinPage( pid, pg, false);
+					SystemDefs.JavabaseBM.pinPage( pid, pg, false);
 				}
 				catch (Exception e) { 
 					status = FAIL;
@@ -564,7 +564,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				if ( status == OK ) {
 					try {
-						Minibase.BufferManager.unpinPage( pid, true ); //might not be dirty
+						SystemDefs.JavabaseBM.unpinPage( pid, true ); //might not be dirty
 					}          
 					catch (Exception e)  { 
 						status = FAIL;
@@ -575,7 +575,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				if ( status == OK && (pid.pid % 20 == 12) ) {
 					try {
-						Minibase.BufferManager.unpinPage( pid, /*dirty:*/ true );
+						SystemDefs.JavabaseBM.unpinPage( pid, /*dirty:*/ true );
 					}
 					catch (Exception e)  { 
 						status = FAIL;
