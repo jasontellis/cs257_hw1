@@ -132,38 +132,114 @@ public class BufMgr extends AbstractBufMgr
 		//
 		// Extend this method to operate as it is supposed to (see the javadoc
 		// description above).
-		// byte [] data = new byte[MAX_SPACE];
-		byte [] data = page.getpage();
+		 byte [] data = new byte[MAX_SPACE];
 		
-		if(pageIdToPageData.containsKey(pin_pgid)) {
-			boolean pageFoundInFrameTable = false;
-			for(int i = 0; i <= frameTable.length; i++) {
-				if(pin_pgid.getPid() == frameTable[i].getPageNo().getPid()) {
-					pageFoundInFrameTable = true;
-					frameTable[i].pin();
-					break;
-				}
+		//Check if page in Buff Pool and Pin it
+		if(isPageInBuffer(pin_pgid)) 
+		{
+			
+			int frameForPage = getFrameForPage(pin_pgid );
+			if( frameForPage >= 0 )
+			{
+				frameTable[frameForPage].pin();
 			}
-			if(!pageFoundInFrameTable) {
+			else
+			{
 				throw new BufMgrException(new Exception(), "Page found in hash table but not in frame table while pinning.");
 			}
+			
+//			boolean pageFoundInFrameTable = false;
+//			for(int i = 0; i <= frameTable.length; i++) {
+//				if(pin_pgid.getPid() == frameTable[i].getPageNo().getPid()) {
+//					pageFoundInFrameTable = true;
+//					frameTable[i].pin();
+//					break;
+//				}
+//			}
+//			if(!pageFoundInFrameTable) {
+//				throw new BufMgrException(new Exception(), "Page found in hash table but not in frame table while pinning.");
+//			}
+		
+		
 		} else {
 			boolean emptyFrameFound = false;
 			int emptyFrameIndex = -1;
-			for(int i = 0; i <= frameTable.length; i++) {
-				if(frameTable[i].getIsEmpty()) {
+			for(int i = 0; i <frameTable.length; ++i) {
+				if(frameTable[i].isEmpty()) {
 					emptyFrameFound = true;
 					emptyFrameIndex = i;
 					break;
 				}
 			}
 			if(emptyFrameFound) {
-				frameTable[emptyFrameIndex].setFrame(new PageId(pin_pgid.getPid()));
+				frameTable[emptyFrameIndex].setPage(new PageId(pin_pgid.getPid()));
 				if(!emptyPage) {
+					
+					
 					pageIdToPageData.put(new PageId(pin_pgid.getPid()), data);
 				}
 			} else {
+				
+				//
+				// Find a victim page to replace it with the current one.
+				PageId victimPageId;
+				Page victimPage;
+				BufMgrFrameDesc victimFrame;
+				int frameNo = replacer.pick_victim(); 
+				if (frameNo < 0)
+				{
+					page = null;
+					throw new ReplacerException(null, "BUFMGR: REPLACER_ERROR.");
+
+				}
+				else
+				{
+					victimFrame = frameTable[frameNo];
+					victimPageId = victimFrame.getPageNo();
+					victimPage = new Page(pageIdToPageData.get(victimPageId));
+					if(victimFrame.isDirty())
+					{
+						SystemDefs.JavabaseDB.write_page(victimPageId, victimPage);
+					}
+					
+					//Clear the victim frame
+					victimFrame.clearFrame();
+					
+//					Read page from disk
+					SystemDefs.JavabaseDB.read_page(pin_pgid, page);
+					
+//					Move new frame to Frame table and buffer pool
+					victimFrame.setPage(pin_pgid);		
+					pageIdToPageData.put(pin_pgid, page.getpage());
+					
+					
+					
+					
+					
+					
+					
+					try
+					{
+						SystemDefs.JavabaseDB.read_page(pin_pgid, page);
+					} catch (Exception e)
+					{
+						throw new PageNotReadException(e,"BUFMGR: DB_READ_PAGE_ERROR");
+					} 
+				}
+				
+				// The following code excerpt reads the contents of the page with id pin_pgid
+				// into the object page. Use it to read the contents of a dirty page to be
+				// written back to disk.
+				try
+				{
+					SystemDefs.JavabaseDB.read_page(pin_pgid, page);
+				} catch (Exception e)
+				{
+					throw new PageNotReadException(e,"BUFMGR: DB_READ_PAGE_ERROR");
+				} 
 				// find corresponding page in hash table
+				
+				
 				// if dirty, flush to disk
 				// clear frame
 				// set frame
@@ -199,6 +275,24 @@ public class BufMgr extends AbstractBufMgr
 		{
 			throw new PageNotReadException(e,"BUFMGR: DB_READ_PAGE_ERROR");
 		} 
+	}
+	
+	private boolean isPageInBuffer(PageId pageId)
+	{
+		return pageIdToPageData.containsKey(pageId);
+	}
+	private int getFrameForPage(PageId pageId)
+	{
+		int frame = -1;
+		for(int i = 0; i<frameTable.length; ++i)
+		{
+			if( frameTable[i].getPageNo() == pageId)
+			{
+				frame = i;
+				break;
+			}
+		}
+		return frame;
 	}
 
 	/**
