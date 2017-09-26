@@ -62,24 +62,19 @@ public class BufMgrFrameDesc extends global.AbstractBufMgrFrameDesc implements G
 		dirtyFlag = true;
 	}
 	
-	public void setFrame(PageId pageId) {
+	public void setPage(PageId pageId) {
 		frame_pageId = pageId;
-		isEmpty = false;
-		pinCount++;
+		pin();
 	}
 	
 
 	public void clearFrame() {
 		frame_pageId = null;
-		isEmpty = true;
 		pinCount = 0;
 	}
 	
-	public boolean getIsEmpty() {
-		return isEmpty;
+	public boolean isEmpty() {
+		return frame_pageId == null? true: false;
 	}
 	
-	public void setIsEmpty(boolean b) {
-		isEmpty = b;
-	}
 }
