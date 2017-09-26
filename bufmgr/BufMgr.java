@@ -199,15 +199,27 @@ public class BufMgr extends AbstractBufMgr
 					victimPage = new Page(pageIdToPageData.get(victimPageId));
 					if(victimFrame.isDirty())
 					{
+						try
+						{
 						SystemDefs.JavabaseDB.write_page(victimPageId, victimPage);
+						}
+						catch(Exception e)
+						{
+							throw new PageNotReadException(e,"BUFMGR: DB_WRITE_PAGE_ERROR");
+						}
 					}
 					
 					//Clear the victim frame
 					victimFrame.clearFrame();
 					
 //					Read page from disk
+					try
+					{
 					SystemDefs.JavabaseDB.read_page(pin_pgid, page);
-					
+					}catch (Exception e)
+					{
+						throw new PageNotReadException(e,"BUFMGR: DB_READ_PAGE_ERROR");
+					} 
 //					Move new frame to Frame table and buffer pool
 					victimFrame.setPage(pin_pgid);		
 					pageIdToPageData.put(pin_pgid, page.getpage());
