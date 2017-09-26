@@ -2,6 +2,7 @@
 
 package bufmgr;
 
+
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -23,6 +24,7 @@ import exceptions.InvalidBufferException;
 import exceptions.InvalidFrameNumberException;
 import exceptions.InvalidPageNumberException;
 import exceptions.InvalidReplacerException;
+import exceptions.InvalidRunSizeException;
 import exceptions.PageNotFoundException;
 import exceptions.PageNotReadException;
 import exceptions.PagePinnedException;
@@ -410,11 +412,27 @@ public class BufMgr extends AbstractBufMgr {
 	 * @exception DiskMgrException
 	 *                other error occured in diskmgr layer
 	 */
-	public void freePage(PageId globalPageId) throws InvalidBufferException, ReplacerException, HashOperationException,
-			InvalidFrameNumberException, PageNotReadException, BufferPoolExceededException, PagePinnedException,
-			PageUnpinnedException, HashEntryNotFoundException, BufMgrException, DiskMgrException, IOException {
-		// if user wants to delete a page, it's deleted from disk and buffer (incl.
-		// hashtable and frametable)?
+	public void freePage(PageId globalPageId) throws InvalidBufferException,
+			ReplacerException, HashOperationException,
+			InvalidFrameNumberException, PageNotReadException,
+			BufferPoolExceededException, PagePinnedException,
+			PageUnpinnedException, HashEntryNotFoundException, BufMgrException,
+			DiskMgrException, IOException
+	{
+		frameTable[getFrameForPage(globalPageId)].clearFrame();
+		pageIdToPageData.remove(globalPageId);
+		try {
+			SystemDefs.JavabaseDB.deallocate_page(globalPageId, 1);
+		} catch (InvalidRunSizeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidPageNumberException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileIOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -436,9 +454,15 @@ public class BufMgr extends AbstractBufMgr {
 	 * @exception IOException
 	 *                if there is other kinds of I/O error.
 	 */
-	public void flushPage(PageId pageid) throws HashOperationException, PageUnpinnedException, PagePinnedException,
-			PageNotFoundException, BufMgrException, IOException {
-		// to be implemented
+	public void flushPage(PageId pageid) throws HashOperationException,
+			PageUnpinnedException, PagePinnedException, PageNotFoundException,
+			BufMgrException, IOException
+	{
+		try {
+			SystemDefs.JavabaseDB.write_page(pageid, new Page(pageIdToPageData.get(pageid)));
+		} catch (FileIOException | InvalidPageNumberException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -457,11 +481,21 @@ public class BufMgr extends AbstractBufMgr {
 	 * @exception IOException
 	 *                if there is other kinds of I/O error.
 	 */
-	public void flushAllPages() throws HashOperationException, PageUnpinnedException, PagePinnedException,
-			PageNotFoundException, BufMgrException, IOException {
-
-		// question: in what situations would you need this? during exit?
+	 
+	// question: in what situations would you need this? during exit?
+	public void flushAllPages() throws HashOperationException,
+			PageUnpinnedException, PagePinnedException, PageNotFoundException,
+			BufMgrException, IOException
+	{
+		for (PageId pageId : pageIdToPageData.keySet()) {
+			try {
+				SystemDefs.JavabaseDB.write_page(pageId, new Page(pageIdToPageData.get(pageId)));
+			} catch (FileIOException | InvalidPageNumberException e) {
+				e.printStackTrace();
+			}
+		}
 	}
+	
 
 	/**
 	 * Gets the total number of buffers.
